@@ -1,0 +1,77 @@
+/*
+  Tokens de diseño de MediLink. Única fuente de color, tipografía, radios y sombras.
+  Los mismos valores alimentan el preset de PrimeNG (src/app/core/theme/medilink-preset.ts);
+  si cambias uno aquí, cámbialo también allá.
+*/
+@theme {
+  --font-sans: 'Figtree Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', monospace;
+
+  /* Tinta petróleo: navegación, texto de marca y acciones principales */
+  --color-ink-50: #eef7f7;
+  --color-ink-100: #d5ebec;
+  --color-ink-200: #aed7da;
+  --color-ink-300: #7dbcc1;
+  --color-ink-400: #4f9aa1;
+  --color-ink-500: #347f87;
+  --color-ink-600: #286870;
+  --color-ink-700: #22555c;
+  --color-ink-800: #1f474d;
+  --color-ink-900: #1c3c42;
+  --color-ink-950: #0e2529;
+
+  /* Coral: un solo acento para la acción más importante de cada pantalla */
+  --color-coral-50: #fff4ef;
+  --color-coral-100: #ffe5d9;
+  --color-coral-200: #ffc7b0;
+  --color-coral-300: #ffa07c;
+  --color-coral-400: #f27a52;
+  --color-coral-500: #e0603a;
+  --color-coral-600: #c94e28;
+  --color-coral-700: #a83f1f;
+  --color-coral-800: #86331b;
+  --color-coral-900: #6c2b18;
+
+  /* Hueso: neutros cálidos para fondos, bordes y texto secundario */
+  --color-bone-0: #ffffff;
+  --color-bone-50: #fbf8f3;
+  --color-bone-100: #f4f0e9;
+  --color-bone-200: #e8e2d8;
+  --color-bone-300: #d5cdc0;
+  --color-bone-400: #aaa194;
+  --color-bone-500: #7a7266;
+  --color-bone-600: #5e584e;
+  --color-bone-700: #47423a;
+  --color-bone-800: #2e2a25;
+  --color-bone-900: #1e1b17;
+
+  /* Estados: siempre acompañados de icono y texto */
+  --color-ok-50: #ecf8f1;
+  --color-ok-600: #1f7a4d;
+  --color-ok-700: #17633e;
+  --color-wait-50: #fdf6e3;
+  --color-wait-600: #8a6100;
+  --color-wait-700: #6f4e00;
+  --color-danger-50: #fdeeee;
+  --color-danger-600: #b42323;
+  --color-danger-700: #931c1c;
+
+  --radius-card: 1rem;
+  --radius-field: 0.625rem;
+
+  --shadow-card: 0 1px 2px rgb(30 27 23 / 0.04), 0 4px 16px -6px rgb(30 27 23 / 0.08);
+  --shadow-raised: 0 2px 4px rgb(30 27 23 / 0.05), 0 18px 40px -12px rgb(14 37 41 / 0.22);
+
+  --animate-rise: rise 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}

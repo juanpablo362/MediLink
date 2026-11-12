@@ -1,0 +1,124 @@
+@layer theme, base, primeng, components, utilities;
+
+@import 'tailwindcss';
+@import './styles/tokens.css';
+@import '@fontsource-variable/figtree';
+@import '@fontsource-variable/jetbrains-mono';
+@import 'primeicons/primeicons.css';
+
+@plugin 'tailwindcss-primeui';
+
+@custom-variant dark (&:where(.app-dark, .app-dark *));
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-bone-50 font-sans text-bone-900 antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply text-balance text-ink-950;
+    letter-spacing: -0.015em;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-coral-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--color-ink-200);
+    color: var(--color-ink-950);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Acción principal de la pantalla (una sola por vista) */
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 rounded-field bg-coral-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-coral-800 active:bg-coral-900 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .surface-card {
+    @apply rounded-card border border-bone-200 bg-bone-0 shadow-card;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.12em] text-bone-500;
+  }
+
+  .folio {
+    @apply font-mono text-[0.8125rem] tabular-nums tracking-tight;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-bone-800;
+  }
+
+  .field-hint {
+    @apply mt-1 text-xs text-bone-500;
+  }
+
+  .field-error {
+    @apply mt-1 flex items-center gap-1 text-xs font-medium text-danger-600;
+  }
+
+  .skip-link {
+    @apply fixed left-3 top-3 z-[1200] -translate-y-24 rounded-field bg-ink-900 px-4 py-2 text-sm font-semibold text-bone-50 transition-transform focus:translate-y-0;
+  }
+
+  .data-table {
+    @apply w-full border-separate border-spacing-0 text-sm;
+  }
+
+  .data-table th {
+    @apply border-b border-bone-200 bg-bone-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-bone-500;
+  }
+
+  .data-table td {
+    @apply border-b border-bone-100 px-4 py-3.5 align-middle text-bone-800;
+  }
+
+  .data-table tbody tr {
+    @apply transition-colors hover:bg-bone-50;
+  }
+
+  .data-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+}
+
+/* PrimeNG: ajustes finos que el preset no cubre */
+.p-dialog .p-dialog-title {
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+p-password.ml-fluid,
+p-password.ml-fluid .p-password,
+p-password.ml-fluid .p-password-input {
+  display: block;
+  width: 100%;
+}
+
+.p-toast {
+  max-width: calc(100vw - 2rem);
+}

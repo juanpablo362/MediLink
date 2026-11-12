@@ -1,0 +1,93 @@
+<ml-page-header title="Médicos" subtitle="Médicos que solicitan estudios. Con usuario pueden consultar los resultados de sus pacientes.">
+  <p-button label="Nuevo médico" icon="pi pi-plus" (onClick)="abrir(null)" />
+</ml-page-header>
+
+<ml-search-field class="mt-4 max-w-md sm:mt-6" placeholder="Nombre, especialidad o cédula" label="Buscar médicos" [(value)]="consulta" />
+<p class="sr-only" aria-live="polite">{{ filtrados().length }} médicos encontrados</p>
+
+<ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3" role="list">
+  @for (m of filtrados(); track m.id) {
+    <li class="surface-card flex min-w-0 flex-col overflow-hidden p-4 sm:p-5">
+      <div class="flex items-start gap-3">
+        <span class="grid size-10 shrink-0 place-items-center rounded-full bg-ink-100 text-sm font-semibold text-ink-800 sm:size-11" aria-hidden="true">
+          {{ ini(m.nombre) }}
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="truncate font-semibold text-ink-950">{{ m.nombre }}</p>
+          <p class="truncate text-sm text-bone-600">{{ m.especialidad }}</p>
+        </div>
+        <p-button class="shrink-0" icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" [ariaLabel]="'Editar ' + m.nombre" (onClick)="abrir(m)" />
+      </div>
+      <dl class="mt-3 grid gap-1.5 text-sm text-bone-700 sm:mt-4">
+        <div class="flex gap-2"><dt class="w-20 shrink-0 text-bone-500">Cédula</dt><dd class="folio min-w-0 truncate">{{ m.cedula }}</dd></div>
+        <div class="flex gap-2"><dt class="w-20 shrink-0 text-bone-500">Teléfono</dt><dd class="min-w-0 truncate">{{ m.telefono }}</dd></div>
+        <div class="flex gap-2"><dt class="w-20 shrink-0 text-bone-500">Correo</dt><dd class="min-w-0 truncate">{{ m.correo }}</dd></div>
+      </dl>
+      <p class="mt-3 flex items-center gap-2 border-t border-bone-100 pt-3 text-xs text-bone-500 sm:mt-4">
+        <i class="pi pi-key shrink-0" aria-hidden="true"></i>
+        <span class="min-w-0 truncate">Usuario del portal: <span class="folio text-ink-800">{{ m.usuario }}</span></span>
+      </p>
+    </li>
+  } @empty {
+    <li class="surface-card sm:col-span-2 xl:col-span-3">
+      <ml-empty-state icon="pi pi-id-card" title="Sin médicos" description="Ningún médico coincide con la búsqueda." />
+    </li>
+  }
+</ul>
+
+<p-dialog
+  [(visible)]="dialogo"
+  [modal]="true"
+  [draggable]="false"
+  [header]="editando() ? 'Editar médico' : 'Nuevo médico'"
+  [style]="{ width: '36rem' }"
+  [breakpoints]="{ '640px': '95vw' }"
+>
+  <form id="form-medico" class="grid gap-4 sm:grid-cols-2" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+    <div class="sm:col-span-2">
+      <label class="field-label" for="m-nombre">Nombre completo</label>
+      <input pInputText id="m-nombre" formControlName="nombre" class="w-full" placeholder="Ej. Dra. Ana López" />
+      <ml-field-error [control]="form.controls.nombre" [submitted]="enviado()" />
+    </div>
+    <div>
+      <label class="field-label" for="m-esp">Especialidad</label>
+      <input pInputText id="m-esp" formControlName="especialidad" class="w-full" />
+      <ml-field-error [control]="form.controls.especialidad" [submitted]="enviado()" />
+    </div>
+    <div>
+      <label class="field-label" for="m-cedula">Cédula profesional</label>
+      <input pInputText id="m-cedula" formControlName="cedula" class="w-full" inputmode="numeric" />
+      <ml-field-error [control]="form.controls.cedula" [submitted]="enviado()" pattern="La cédula tiene de 7 a 8 dígitos." />
+    </div>
+    <div>
+      <label class="field-label" for="m-tel">Teléfono</label>
+      <input pInputText id="m-tel" formControlName="telefono" class="w-full" inputmode="tel" />
+    </div>
+    <div>
+      <label class="field-label" for="m-correo">Correo</label>
+      <input pInputText id="m-correo" formControlName="correo" type="email" class="w-full" />
+      <ml-field-error [control]="form.controls.correo" [submitted]="enviado()" />
+    </div>
+    <fieldset class="rounded-xl border border-bone-200 p-4 sm:col-span-2">
+      <legend class="px-1 text-sm font-semibold text-ink-950">Acceso al portal médico</legend>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="field-label" for="m-usuario">Usuario</label>
+          <input pInputText id="m-usuario" formControlName="usuario" class="w-full" autocomplete="off" />
+          <ml-field-error [control]="form.controls.usuario" [submitted]="enviado()" />
+        </div>
+        <div>
+          <label class="field-label" for="m-pass">{{ editando() ? 'Nueva contraseña' : 'Contraseña' }}</label>
+          <p-password class="ml-fluid" inputId="m-pass" formControlName="contrasena" [toggleMask]="true" inputStyleClass="w-full" autocomplete="new-password" appendTo="body" />
+          <p class="field-hint">{{ editando() ? 'Déjala vacía para conservar la actual.' : 'Mínimo 8 caracteres.' }}</p>
+        </div>
+      </div>
+    </fieldset>
+  </form>
+  <ng-template #footer>
+    <div class="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <p-button class="w-full sm:w-auto" label="Cancelar" severity="secondary" [text]="true" (onClick)="dialogo.set(false)" />
+      <p-button class="w-full sm:w-auto" type="submit" form="form-medico" label="Guardar" [loading]="guardando()" />
+    </div>
+  </ng-template>
+</p-dialog>

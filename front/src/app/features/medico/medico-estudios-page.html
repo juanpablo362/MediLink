@@ -1,0 +1,123 @@
+<ml-page-header
+  eyebrow="Portal médico"
+  title="Estudios de mis pacientes"
+  subtitle="Consulta y descarga los resultados de las órdenes que solicitaste."
+/>
+
+<section class="surface-card mt-4 p-4 sm:mt-6 sm:p-5" aria-label="Filtros">
+  <div class="grid gap-3 lg:hidden">
+    <div class="min-w-0">
+      <span class="field-label" id="buscar-label">Buscar</span>
+      <ml-search-field placeholder="Paciente, folio o estudio" label="Buscar por paciente, folio o estudio" [(value)]="consulta" />
+    </div>
+    <p-button
+      [label]="filtrosAbiertos() ? 'Ocultar filtros' : 'Filtros' + (filtrosExtra() ? ' · ' + filtrosExtra() : '')"
+      [icon]="filtrosAbiertos() ? 'pi pi-chevron-up' : 'pi pi-filter'"
+      severity="secondary"
+      [outlined]="true"
+      class="w-full"
+      [attr.aria-expanded]="filtrosAbiertos()"
+      aria-controls="filtros-extra"
+      (onClick)="filtrosAbiertos.update((v) => !v)"
+    />
+    @if (filtrosAbiertos()) {
+      <div id="filtros-extra" class="grid gap-3">
+        <div class="min-w-0">
+          <label class="field-label" for="rango">Fecha de registro</label>
+          <p-datepicker
+            inputId="rango"
+            selectionMode="range"
+            [ngModel]="rango()"
+            (ngModelChange)="rango.set($event)"
+            dateFormat="dd/mm/yy"
+            placeholder="Desde – hasta"
+            [showIcon]="true"
+            iconDisplay="input"
+            [showButtonBar]="true"
+            [readonlyInput]="true"
+            [maxDate]="hoy"
+            class="w-full"
+            inputStyleClass="w-full"
+            appendTo="body"
+          />
+        </div>
+        <div>
+          <span class="field-label" id="estado-label">Estado</span>
+          <p-selectbutton
+            [options]="estados"
+            optionLabel="label"
+            optionValue="value"
+            [allowEmpty]="false"
+            [ngModel]="estado()"
+            (ngModelChange)="estado.set($event)"
+            ariaLabelledBy="estado-label"
+          />
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="hidden gap-4 lg:grid lg:grid-cols-[1fr_auto_auto] lg:items-end">
+    <div class="min-w-0">
+      <span class="field-label" id="buscar-label-lg">Buscar</span>
+      <ml-search-field placeholder="Paciente, folio o estudio" label="Buscar por paciente, folio o estudio" [(value)]="consulta" />
+    </div>
+    <div class="min-w-0">
+      <label class="field-label" for="rango-lg">Fecha de registro</label>
+      <p-datepicker
+        inputId="rango-lg"
+        selectionMode="range"
+        [ngModel]="rango()"
+        (ngModelChange)="rango.set($event)"
+        dateFormat="dd/mm/yy"
+        placeholder="Desde – hasta"
+        [showIcon]="true"
+        iconDisplay="input"
+        [showButtonBar]="true"
+        [readonlyInput]="true"
+        [maxDate]="hoy"
+        class="w-64"
+        inputStyleClass="w-full"
+        appendTo="body"
+      />
+    </div>
+    <div>
+      <span class="field-label" id="estado-label-lg">Estado</span>
+      <p-selectbutton
+        [options]="estados"
+        optionLabel="label"
+        optionValue="value"
+        [allowEmpty]="false"
+        [ngModel]="estado()"
+        (ngModelChange)="estado.set($event)"
+        ariaLabelledBy="estado-label-lg"
+      />
+    </div>
+  </div>
+</section>
+
+<div class="mt-4 flex items-center justify-between sm:mt-6">
+  <p class="text-sm text-bone-600" aria-live="polite">
+    {{ filtradas().length }} {{ filtradas().length === 1 ? 'orden' : 'órdenes' }}
+  </p>
+  @if (hayFiltros()) {
+    <p-button label="Limpiar filtros" icon="pi pi-filter-slash" [text]="true" size="small" severity="secondary" (onClick)="limpiar()" />
+  }
+</div>
+
+<ul class="mt-3 grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2" role="list">
+  @for (o of filtradas(); track o.id) {
+    <li class="min-w-0">
+      <ml-resultado-card
+        [orden]="o"
+        [titulo]="nombre(o.paciente)"
+        [subtitulo]="o.paciente ? edadDe(o.paciente.fechaNacimiento) + ' años' : ''"
+        [visorBase]="['/medico', 'visor']"
+      />
+    </li>
+  } @empty {
+    <li class="surface-card min-w-0 lg:col-span-2">
+      <ml-empty-state icon="pi pi-search" title="Sin resultados" description="No hay órdenes con estos filtros." />
+    </li>
+  }
+</ul>

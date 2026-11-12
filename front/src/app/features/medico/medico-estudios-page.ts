@@ -16,77 +16,7 @@ import { SearchField } from '@shared/ui/search-field';
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, ButtonModule, DatePickerModule, SelectButtonModule, PageHeader, SearchField, ResultadoCard, EmptyState],
-  template: `
-    <ml-page-header
-      eyebrow="Portal médico"
-      title="Estudios de mis pacientes"
-      subtitle="Consulta y descarga los resultados de las órdenes que solicitaste."
-    />
-
-    <section class="surface-card mt-6 grid gap-4 p-4 sm:p-5 lg:grid-cols-[1fr_auto_auto] lg:items-end" aria-label="Filtros">
-      <div>
-        <span class="field-label" id="buscar-label">Buscar</span>
-        <ml-search-field placeholder="Paciente, folio o estudio" label="Buscar por paciente, folio o estudio" [(value)]="consulta" />
-      </div>
-      <div>
-        <label class="field-label" for="rango">Fecha de registro</label>
-        <p-datepicker
-          inputId="rango"
-          selectionMode="range"
-          [ngModel]="rango()"
-          (ngModelChange)="rango.set($event)"
-          dateFormat="dd/mm/yy"
-          placeholder="Desde – hasta"
-          [showIcon]="true"
-          iconDisplay="input"
-          [showButtonBar]="true"
-          [readonlyInput]="true"
-          [maxDate]="hoy"
-          class="w-full lg:w-64"
-          inputStyleClass="w-full"
-          appendTo="body"
-        />
-      </div>
-      <div>
-        <span class="field-label" id="estado-label">Estado</span>
-        <p-selectbutton
-          [options]="estados"
-          optionLabel="label"
-          optionValue="value"
-          [allowEmpty]="false"
-          [ngModel]="estado()"
-          (ngModelChange)="estado.set($event)"
-          ariaLabelledBy="estado-label"
-        />
-      </div>
-    </section>
-
-    <div class="mt-6 flex items-center justify-between">
-      <p class="text-sm text-bone-600" aria-live="polite">
-        {{ filtradas().length }} {{ filtradas().length === 1 ? 'orden' : 'órdenes' }}
-      </p>
-      @if (hayFiltros()) {
-        <p-button label="Limpiar filtros" icon="pi pi-filter-slash" [text]="true" size="small" severity="secondary" (onClick)="limpiar()" />
-      }
-    </div>
-
-    <ul class="mt-3 grid gap-4 lg:grid-cols-2" role="list">
-      @for (o of filtradas(); track o.id) {
-        <li>
-          <ml-resultado-card
-            [orden]="o"
-            [titulo]="nombre(o.paciente)"
-            [subtitulo]="o.paciente ? edadDe(o.paciente.fechaNacimiento) + ' años' : ''"
-            [visorBase]="['/medico', 'visor']"
-          />
-        </li>
-      } @empty {
-        <li class="surface-card lg:col-span-2">
-          <ml-empty-state icon="pi pi-search" title="Sin resultados" description="No hay órdenes con estos filtros." />
-        </li>
-      }
-    </ul>
-  `,
+  templateUrl: './medico-estudios-page.html',
 })
 export default class MedicoEstudiosPage {
   private readonly vista = inject(OrdenesVistaService);
@@ -104,6 +34,7 @@ export default class MedicoEstudiosPage {
   protected readonly consulta = signal('');
   protected readonly rango = signal<(Date | null)[] | null>(null);
   protected readonly estado = signal<'todas' | EstadoOrden>('todas');
+  protected readonly filtrosAbiertos = signal(false);
 
   private readonly propias = computed(() => {
     const id = this.session.medico()?.medicoId;
@@ -123,6 +54,12 @@ export default class MedicoEstudiosPage {
   });
 
   protected readonly hayFiltros = computed(() => !!this.consulta() || !!this.rango()?.[0] || this.estado() !== 'todas');
+  protected readonly filtrosExtra = computed(() => {
+    let n = 0;
+    if (this.rango()?.[0]) n++;
+    if (this.estado() !== 'todas') n++;
+    return n;
+  });
 
   protected limpiar(): void {
     this.consulta.set('');

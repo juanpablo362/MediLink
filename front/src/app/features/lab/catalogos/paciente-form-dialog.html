@@ -1,0 +1,65 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [header]="paciente() ? 'Editar paciente' : 'Nuevo paciente'"
+  [style]="{ width: '36rem' }"
+  [breakpoints]="{ '640px': '95vw' }"
+>
+  <form id="form-paciente" class="grid gap-4 sm:grid-cols-2" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+    <div>
+      <label class="field-label" for="p-nombre">Nombre(s)</label>
+      <input pInputText id="p-nombre" formControlName="nombre" class="w-full" autocomplete="given-name" />
+      <ml-field-error [control]="form.controls.nombre" [submitted]="enviado()" />
+    </div>
+    <div>
+      <label class="field-label" for="p-apellidos">Apellidos</label>
+      <input pInputText id="p-apellidos" formControlName="apellidos" class="w-full" autocomplete="family-name" />
+      <ml-field-error [control]="form.controls.apellidos" [submitted]="enviado()" />
+    </div>
+    <div>
+      <label class="field-label" for="p-nacimiento">Fecha de nacimiento</label>
+      <p-datepicker
+        inputId="p-nacimiento"
+        formControlName="fechaNacimiento"
+        dateFormat="dd/mm/yy"
+        [maxDate]="hoy"
+        [showIcon]="true"
+        iconDisplay="input"
+        placeholder="dd/mm/aaaa"
+        class="w-full"
+        inputStyleClass="w-full"
+        appendTo="body"
+      />
+      <ml-field-error [control]="form.controls.fechaNacimiento" [submitted]="enviado()" />
+    </div>
+    <div>
+      <span class="field-label" id="p-sexo-label">Sexo</span>
+      <p-selectbutton
+        formControlName="sexo"
+        [options]="sexos"
+        optionLabel="label"
+        optionValue="value"
+        [allowEmpty]="false"
+        [fluid]="true"
+        ariaLabelledBy="p-sexo-label"
+      />
+    </div>
+    <div>
+      <label class="field-label" for="p-tel">Teléfono celular</label>
+      <input pInputText id="p-tel" formControlName="telefono" class="w-full" inputmode="tel" autocomplete="tel-national" placeholder="10 dígitos" />
+      <ml-field-error [control]="form.controls.telefono" [submitted]="enviado()" pattern="Escribe 10 dígitos." />
+    </div>
+    <div>
+      <label class="field-label" for="p-correo">Correo electrónico</label>
+      <input pInputText id="p-correo" formControlName="correo" class="w-full" type="email" autocomplete="email" />
+      <ml-field-error [control]="form.controls.correo" [submitted]="enviado()" />
+    </div>
+  </form>
+  <ng-template #footer>
+    <div class="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <p-button class="w-full sm:w-auto" label="Cancelar" severity="secondary" [text]="true" (onClick)="visible.set(false)" />
+      <p-button class="w-full sm:w-auto" type="submit" form="form-paciente" [label]="paciente() ? 'Guardar cambios' : 'Registrar paciente'" [loading]="guardando()" />
+    </div>
+  </ng-template>
+</p-dialog>

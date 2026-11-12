@@ -112,6 +112,21 @@
   letter-spacing: -0.01em;
 }
 
+.p-dialog-footer {
+  gap: 0.5rem;
+}
+
+.p-dialog-footer .p-button-label,
+.p-button .p-button-label {
+  white-space: nowrap;
+}
+
+p-button.w-full,
+p-button.w-full .p-button {
+  display: flex;
+  width: 100%;
+}
+
 p-password.ml-fluid,
 p-password.ml-fluid .p-password,
 p-password.ml-fluid .p-password-input {

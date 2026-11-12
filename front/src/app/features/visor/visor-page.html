@@ -1,0 +1,106 @@
+@if (orden(); as o) {
+  <div
+    class="flex flex-col bg-[#0b1214] text-bone-100"
+    [class]="enShell() ? 'min-h-[calc(100dvh-9rem)] overflow-hidden rounded-card shadow-raised' : 'min-h-dvh'"
+  >
+    <header class="flex flex-wrap items-center gap-3 border-b border-white/10 px-4 py-3">
+      <a
+        [routerLink]="volver()"
+        class="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-bone-200 hover:bg-white/10"
+      >
+        <i class="pi pi-arrow-left text-xs" aria-hidden="true"></i>Volver
+      </a>
+      <div class="min-w-0">
+        <h1 class="truncate text-sm font-semibold !text-bone-50">{{ estudio()?.nombre }}</h1>
+        <p class="folio truncate !text-xs text-bone-400">
+          {{ fmtFolio(o.folio) }} · {{ nombre(o.paciente) }} · {{ o.fechaRegistro | date: 'dd/MM/yyyy' }}
+        </p>
+      </div>
+      <span class="ml-auto rounded bg-coral-500/15 px-2 py-1 text-[0.6875rem] font-semibold uppercase tracking-wider text-coral-300">
+        Vista previa simulada
+      </span>
+    </header>
+
+    <div class="flex flex-1 flex-col lg:flex-row">
+      <!-- Herramientas -->
+      <div class="flex flex-wrap items-center gap-1 border-b border-white/10 p-2 lg:flex-col lg:border-b-0 lg:border-r" role="toolbar" aria-label="Herramientas del visor">
+        @for (h of herramientas; track h.id) {
+          <button
+            type="button"
+            class="grid size-10 place-items-center rounded-lg text-bone-300 transition hover:bg-white/10 hover:text-bone-50"
+            [pTooltip]="h.label"
+            tooltipPosition="right"
+            [attr.aria-label]="h.label"
+            [attr.aria-pressed]="h.id === 'invertir' ? invertido() : null"
+            [class.bg-white/15]="h.id === 'invertir' && invertido()"
+            (click)="accion(h.id)"
+          >
+            <i [class]="h.icon" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+
+      <!-- Lienzo -->
+      <div
+        class="relative flex flex-1 items-center justify-center overflow-hidden p-4"
+        (wheel)="rueda($event)"
+      >
+        <canvas
+          #lienzo
+          width="512"
+          height="512"
+          class="aspect-square w-full max-w-[min(80vh,640px)] transition-transform duration-150"
+          [style.transform]="'scale(' + zoom() + ') rotate(' + rotacion() + 'deg)'"
+          [style.filter]="filtro()"
+          role="img"
+          [attr.aria-label]="'Corte ' + (corte() + 1) + ' de ' + total + ' de ' + (estudio()?.nombre ?? 'estudio')"
+        ></canvas>
+        <div class="folio pointer-events-none absolute left-4 top-4 grid gap-0.5 !text-[0.6875rem] text-ink-200/80" aria-hidden="true">
+          <span>{{ nombre(o.paciente) }}</span>
+          <span>{{ estudio()?.clave }} · Serie 1</span>
+        </div>
+        <div class="folio pointer-events-none absolute bottom-4 right-4 grid gap-0.5 text-right !text-[0.6875rem] text-ink-200/80" aria-hidden="true">
+          <span>Corte {{ corte() + 1 }}/{{ total }}</span>
+          <span>Zoom {{ (zoom() * 100).toFixed(0) }}%</span>
+          <span>B {{ brillo() }} · C {{ contraste() }}</span>
+        </div>
+      </div>
+
+      <!-- Ajustes -->
+      <aside class="grid gap-5 border-t border-white/10 p-4 lg:w-64 lg:border-l lg:border-t-0" aria-label="Ajustes de imagen">
+        <div>
+          <label class="mb-2 flex justify-between text-xs font-medium text-bone-300" id="corte-label">
+            Corte <span class="folio">{{ corte() + 1 }}/{{ total }}</span>
+          </label>
+          <p-slider [ngModel]="corte()" (ngModelChange)="corte.set($event)" [min]="0" [max]="total - 1" ariaLabelledBy="corte-label" />
+        </div>
+        <div>
+          <label class="mb-2 flex justify-between text-xs font-medium text-bone-300" id="brillo-label">
+            Brillo <span class="folio">{{ brillo() }}%</span>
+          </label>
+          <p-slider [ngModel]="brillo()" (ngModelChange)="brillo.set($event)" [min]="40" [max]="180" ariaLabelledBy="brillo-label" />
+        </div>
+        <div>
+          <label class="mb-2 flex justify-between text-xs font-medium text-bone-300" id="contraste-label">
+            Contraste <span class="folio">{{ contraste() }}%</span>
+          </label>
+          <p-slider [ngModel]="contraste()" (ngModelChange)="contraste.set($event)" [min]="40" [max]="200" ariaLabelledBy="contraste-label" />
+        </div>
+        <p class="text-xs leading-relaxed text-bone-400">
+          Usa la rueda del ratón o las flechas ↑ ↓ para recorrer los cortes. Esta vista no sustituye a una estación diagnóstica.
+        </p>
+      </aside>
+    </div>
+  </div>
+} @else {
+  <div class="grid min-h-[60vh] place-items-center px-4 text-center">
+    <div>
+      <span class="mx-auto grid size-14 place-items-center rounded-2xl bg-bone-100 text-xl text-bone-500" aria-hidden="true">
+        <i class="pi pi-lock"></i>
+      </span>
+      <h1 class="mt-5 text-xl font-semibold">No puedes ver estas imágenes</h1>
+      <p class="mt-2 text-sm text-bone-600">El estudio no existe, aún no está listo o no tienes permiso para consultarlo.</p>
+      <a [routerLink]="volver()" class="mt-6 inline-block text-sm font-semibold text-ink-700 underline underline-offset-2">Volver</a>
+    </div>
+  </div>
+}

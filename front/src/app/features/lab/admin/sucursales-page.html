@@ -1,0 +1,90 @@
+<ml-page-header eyebrow="Administración" title="Sucursales" subtitle="Ubicaciones del laboratorio y el personal asignado a cada una.">
+  <p-button label="Nueva sucursal" icon="pi pi-plus" (onClick)="abrir(null)" />
+</ml-page-header>
+
+<ul class="mt-4 grid grid-cols-1 gap-3 sm:mt-6 sm:gap-4 md:grid-cols-2" role="list">
+  @for (s of sucursales(); track s.id) {
+    <li class="surface-card flex min-w-0 flex-col overflow-hidden p-4 sm:p-5">
+      <div class="flex items-start gap-3">
+        <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-ink-50 text-ink-700 sm:size-11" aria-hidden="true">
+          <i class="pi pi-building"></i>
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="text-base font-semibold text-ink-950 sm:text-lg">Sucursal {{ s.nombre }}</p>
+          <p class="text-sm text-bone-600">{{ s.direccion }}</p>
+          <p class="text-sm text-bone-500">{{ s.telefono }}</p>
+        </div>
+        <p-button class="shrink-0" icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" [ariaLabel]="'Editar sucursal ' + s.nombre" (onClick)="abrir(s)" />
+      </div>
+      <div class="mt-4 border-t border-bone-100 pt-3 sm:mt-5 sm:pt-4">
+        <p class="text-sm font-medium text-bone-700">Personal asignado ({{ s.personal.length }})</p>
+        <ul class="mt-3 flex flex-wrap gap-2" role="list">
+          @for (u of s.personal; track u.id) {
+            <li class="inline-flex items-center gap-2 rounded-full bg-bone-100 py-1 pl-1 pr-3 text-sm">
+              <span class="grid size-6 place-items-center rounded-full bg-ink-100 text-[0.625rem] font-semibold text-ink-800" aria-hidden="true">{{ ini(u.nombre) }}</span>
+              {{ u.nombre }}
+            </li>
+          } @empty {
+            <li class="text-sm text-bone-500">Sin personal asignado.</li>
+          }
+        </ul>
+      </div>
+      <dl class="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-bone-50 p-3 text-center">
+        <div>
+          <dt class="text-xs text-bone-500">En proceso</dt>
+          <dd class="text-xl font-semibold tabular-nums text-ink-950">{{ s.abiertas }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-bone-500">Listas</dt>
+          <dd class="text-xl font-semibold tabular-nums text-ink-950">{{ s.cerradas }}</dd>
+        </div>
+      </dl>
+    </li>
+  }
+</ul>
+
+<p-dialog
+  [(visible)]="dialogo"
+  [modal]="true"
+  [draggable]="false"
+  [header]="editando() ? 'Editar sucursal' : 'Nueva sucursal'"
+  [style]="{ width: '34rem' }"
+  [breakpoints]="{ '640px': '95vw' }"
+>
+  <form id="form-sucursal" class="grid gap-4" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+    <div>
+      <label class="field-label" for="s-nombre">Nombre</label>
+      <input pInputText id="s-nombre" formControlName="nombre" class="w-full" placeholder="Ej. Sur" />
+      <ml-field-error [control]="form.controls.nombre" [submitted]="enviado()" />
+    </div>
+    <div>
+      <label class="field-label" for="s-dir">Dirección</label>
+      <input pInputText id="s-dir" formControlName="direccion" class="w-full" autocomplete="street-address" />
+      <ml-field-error [control]="form.controls.direccion" [submitted]="enviado()" />
+    </div>
+    <div>
+      <label class="field-label" for="s-tel">Teléfono</label>
+      <input pInputText id="s-tel" formControlName="telefono" class="w-full" inputmode="tel" />
+    </div>
+    <div>
+      <label class="field-label" for="s-personal">Personal asignado</label>
+      <p-multiselect
+        inputId="s-personal"
+        formControlName="usuarioIds"
+        [options]="api.usuarios()"
+        optionLabel="nombre"
+        optionValue="id"
+        placeholder="Selecciona usuarios"
+        display="chip"
+        [fluid]="true"
+        appendTo="body"
+      />
+    </div>
+  </form>
+  <ng-template #footer>
+    <div class="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <p-button class="w-full sm:w-auto" label="Cancelar" severity="secondary" [text]="true" (onClick)="dialogo.set(false)" />
+      <p-button class="w-full sm:w-auto" type="submit" form="form-sucursal" label="Guardar" [loading]="guardando()" />
+    </div>
+  </ng-template>
+</p-dialog>

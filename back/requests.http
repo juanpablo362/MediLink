@@ -1,0 +1,75 @@
+@api = http://localhost:5080/api/v1
+@password = REEMPLAZAR_LOCALMENTE
+
+### Iniciar sesión. Reemplaza la contraseña solo en tu copia local.
+# @name login
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{ "usuario": "admin", "contrasena": "{{password}}", "tipo": "lab" }
+
+### Copia accessToken de la respuesta anterior.
+@token = COPIAR_ACCESS_TOKEN
+@sucursal = COPIAR_SUCURSAL_ID_DE_LA_SESION
+
+### Sesión y sucursales disponibles
+GET {{api}}/auth/me
+Authorization: Bearer {{token}}
+
+### Registrar paciente
+POST {{api}}/pacientes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "nombre": "Andrea", "apellidos": "Ejemplo", "fechaNacimiento": "1990-04-12", "sexo": "F", "telefono": "6620000000", "correo": "andrea@example.test" }
+
+### Registrar estudio
+POST {{api}}/estudios
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "clave": "BH", "nombre": "Biometría hemática", "area": "Hematología", "precio": 350.25, "diasEntrega": 1, "dicom": false }
+
+@paciente = COPIAR_PACIENTE_ID
+@estudio = COPIAR_ESTUDIO_ID
+
+### Registrar orden. Ajusta la fecha de entrega a una fecha futura.
+POST {{api}}/ordenes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "pacienteId": "{{paciente}}", "sucursalId": "{{sucursal}}", "medicoId": null, "medicoExterno": "Dra. Ejemplo", "estudioIds": ["{{estudio}}"], "fechaEntrega": "2027-01-15T18:00:00-07:00", "entrega": { "impreso": true, "correo": false, "whatsapp": false }, "notas": "" }
+
+@orden = COPIAR_ORDEN_ID
+
+### Subir un PDF local (reemplaza la ruta)
+POST {{api}}/ordenes/{{orden}}/estudios/{{estudio}}/adjuntos
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=MediLinkBoundary
+
+--MediLinkBoundary
+Content-Disposition: form-data; name="archivo"; filename="resultado.pdf"
+Content-Type: application/pdf
+
+< ./resultado.pdf
+--MediLinkBoundary--
+
+### Cerrar después de subir los resultados
+POST {{api}}/ordenes/{{orden}}/cerrar
+Authorization: Bearer {{token}}
+
+### Compartir esa orden con el paciente
+POST {{api}}/enlaces
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "pacienteId": "{{paciente}}", "sucursalId": "{{sucursal}}", "ordenId": "{{orden}}" }
+
+@enlace = COPIAR_TOKEN_DEL_ENLACE
+
+### Consulta pública
+GET {{api}}/resultados/{{enlace}}
+
+### Consultar órdenes de sucursal
+GET {{api}}/ordenes?sucursalId={{sucursal}}&estado=cerrada&page=1&pageSize=25
+Authorization: Bearer {{token}}

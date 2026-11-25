@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MediLink.Api/MediLink.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MediLink.Api.Tests/MediLink.Api.Tests.csproj" />
+  </Folder>
+</Solution>

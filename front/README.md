@@ -2,7 +2,7 @@
 
 MediLink es una plataforma web para laboratorios clínicos y centros de diagnóstico. Centraliza pacientes, órdenes de estudio y resultados en PDF o DICOM, y permite compartirlos con médicos y pacientes mediante enlaces seguros.
 
-Este directorio contiene solo el frontend. Por ahora no hay backend: los datos son ficticios, viven en memoria y vuelven a su estado inicial cada vez que se recarga la página.
+Este directorio contiene el frontend y todavía utiliza datos ficticios en memoria, que vuelven a su estado inicial al recargar. El backend .NET 10 está en [../back](../back/README.md); su conexión con estas pantallas es un paso posterior.
 
 ## Portales
 
@@ -143,6 +143,6 @@ Antes de dar un cambio por terminado:
 
 ## Pendiente
 
-- Backend real y autenticación.
+- Conectar las pantallas y la sesión al backend de `../back`.
 - Módulo PWA para registrar órdenes sin conexión y sincronizarlas después.
 - Visor DICOM real (el actual dibuja cortes de ejemplo).

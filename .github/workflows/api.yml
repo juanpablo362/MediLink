@@ -1,0 +1,50 @@
+name: API .NET 10
+
+on:
+  push:
+    branches: [main, develop, feat/api]
+    paths: ['back/**', '.github/workflows/api.yml']
+  pull_request:
+    paths: ['back/**', '.github/workflows/api.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        provider: [sqlite, postgres]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: medilink_tests
+          POSTGRES_USER: medilink_tests
+          POSTGRES_PASSWORD: ci-only-medilink-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U medilink_tests -d medilink_tests"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: back
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet restore MediLink.slnx
+      - run: dotnet build MediLink.slnx --configuration Release --no-restore
+      - run: dotnet test MediLink.slnx --configuration Release --no-build --logger trx --results-directory TestResults
+        env:
+          MEDILINK_TEST_POSTGRES: ${{ matrix.provider == 'postgres' && 'Host=localhost;Database=medilink_tests;Username=medilink_tests;Password=ci-only-medilink-password' || '' }}
+      - run: dotnet tool restore
+      - run: dotnet ef migrations has-pending-model-changes --context SqliteDbContext --project src/MediLink.Api --configuration Release --no-build
+      - run: dotnet ef migrations has-pending-model-changes --context PostgresDbContext --project src/MediLink.Api --configuration Release --no-build
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-test-results-${{ matrix.provider }}
+          path: back/TestResults/*.trx

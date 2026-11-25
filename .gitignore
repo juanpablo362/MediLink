@@ -26,3 +26,17 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# .NET / local API data and secrets
+**/bin/
+**/obj/
+**/TestResults/
+.vs/
+*.user
+*.suo
+**/App_Data/
+**/appsettings.Local.json
+**/.env
+.nuget/
+.dotnet/
+artifacts/

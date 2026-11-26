@@ -1,4 +1,5 @@
 import { DATE_PIPE_DEFAULT_OPTIONS, registerLocaleData } from '@angular/common';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import localeEsMx from '@angular/common/locales/es-MX';
 import {
   ApplicationConfig,
@@ -11,6 +12,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 
 import { environment } from '@env/environment';
+import { authInterceptor } from '@core/auth/auth.interceptor';
 import { PRIMENG_ES } from '@core/i18n/primeng-es';
 import { MediLinkPreset } from '@core/theme/medilink-preset';
 import { routes } from './app.routes';
@@ -20,6 +22,7 @@ registerLocaleData(localeEsMx, 'es-MX');
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(
       routes,
       withComponentInputBinding(),

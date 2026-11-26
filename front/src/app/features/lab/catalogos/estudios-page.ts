@@ -185,10 +185,15 @@ export default class EstudiosPage {
     this.enviado.set(true);
     if (this.form.invalid) return;
     this.guardando.set(true);
-    const v = this.form.getRawValue();
-    const e = await this.api.guardarEstudio({ ...v, clave: v.clave.toUpperCase(), id: this.editando()?.id });
-    this.guardando.set(false);
-    this.dialogo.set(false);
-    this.toast.add({ severity: 'success', summary: 'Estudio guardado', detail: e.nombre });
+    try {
+      const v = this.form.getRawValue();
+      const e = await this.api.guardarEstudio({ ...v, clave: v.clave.toUpperCase(), id: this.editando()?.id });
+      this.dialogo.set(false);
+      this.toast.add({ severity: 'success', summary: 'Estudio guardado', detail: e.nombre });
+    } catch (e) {
+      this.toast.add({ severity: 'error', summary: 'No se pudo guardar', detail: (e as Error).message });
+    } finally {
+      this.guardando.set(false);
+    }
   }
-}
+} 

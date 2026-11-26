@@ -78,6 +78,7 @@ export interface Adjunto {
 export interface OrdenEstudio {
   estudioId: Id;
   adjuntos: Adjunto[];
+  estudio?: Estudio;
 }
 
 export interface FormaEntrega {
@@ -101,9 +102,11 @@ export interface Orden {
   entrega: FormaEntrega;
   total: number;
   notas: string;
+  paciente?: Paciente;
 }
 
 export interface EnlaceSeguro {
+  id?: Id;
   token: string;
   pacienteId: Id;
   creado: string;

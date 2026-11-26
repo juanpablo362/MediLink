@@ -128,19 +128,24 @@ export class PacienteFormDialog {
     this.enviado.set(true);
     if (this.form.invalid) return;
     this.guardando.set(true);
-    const v = this.form.getRawValue();
-    const guardado = await this.api.guardarPaciente({
-      id: this.paciente()?.id,
-      nombre: v.nombre.trim(),
-      apellidos: v.apellidos.trim(),
-      fechaNacimiento: v.fechaNacimiento!.toISOString().slice(0, 10),
-      sexo: v.sexo,
-      telefono: v.telefono,
-      correo: v.correo.trim(),
-    });
-    this.guardando.set(false);
-    this.toast.add({ severity: 'success', summary: 'Paciente guardado', detail: `${guardado.nombre} ${guardado.apellidos}` });
-    this.guardado.emit(guardado);
-    this.visible.set(false);
+    try {
+      const v = this.form.getRawValue();
+      const guardado = await this.api.guardarPaciente({
+        id: this.paciente()?.id,
+        nombre: v.nombre.trim(),
+        apellidos: v.apellidos.trim(),
+        fechaNacimiento: v.fechaNacimiento!.toISOString().slice(0, 10),
+        sexo: v.sexo,
+        telefono: v.telefono,
+        correo: v.correo.trim(),
+      });
+      this.toast.add({ severity: 'success', summary: 'Paciente guardado', detail: `${guardado.nombre} ${guardado.apellidos}` });
+      this.guardado.emit(guardado);
+      this.visible.set(false);
+    } catch (e) {
+      this.toast.add({ severity: 'error', summary: 'No se pudo guardar', detail: (e as Error).message });
+    } finally {
+      this.guardando.set(false);
+    }
   }
 }

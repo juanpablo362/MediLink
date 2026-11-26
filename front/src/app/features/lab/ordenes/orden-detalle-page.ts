@@ -7,7 +7,7 @@ import { TooltipModule } from 'primeng/tooltip';
 
 import { MockApiService } from '@core/api/mock-api.service';
 import { OrdenesVistaService } from '@core/api/ordenes-vista.service';
-import { descargarResultado } from '@core/util/descarga';
+import { SessionService } from '@core/auth/session.service';
 import { edad, folio, nombreCompleto, tamanoLegible } from '@core/util/format';
 import { EmptyState } from '@shared/ui/empty-state';
 import { FileDropzone } from '@shared/ui/file-dropzone';
@@ -35,13 +35,15 @@ import { StatusBadge } from '@shared/ui/status-badge';
         </div>
         <div class="flex flex-wrap gap-2">
           @if (o.estado === 'abierta') {
-            <p-button
-              label="Eliminar"
-              icon="pi pi-trash"
-              severity="danger"
-              [text]="true"
-              (onClick)="eliminar()"
-            />
+            @if (session.esAdmin()) {
+              <p-button
+                label="Eliminar"
+                icon="pi pi-trash"
+                severity="danger"
+                [text]="true"
+                (onClick)="eliminar()"
+              />
+            }
             <button
               type="button"
               class="btn-accent"
@@ -145,7 +147,7 @@ import { StatusBadge } from '@shared/ui/status-badge';
                             severity="secondary"
                             pTooltip="Descargar"
                             [ariaLabel]="'Descargar ' + a.nombre"
-                            (onClick)="descargar(a.nombre, e.nombre)"
+                            (onClick)="descargar(e.id, a.id, a.nombre)"
                           />
                         } @else {
                           <p-button
@@ -257,6 +259,7 @@ import { StatusBadge } from '@shared/ui/status-badge';
 export default class OrdenDetallePage {
   readonly id = input.required<string>();
 
+  protected readonly session = inject(SessionService);
   private readonly api = inject(MockApiService);
   private readonly vista = inject(OrdenesVistaService);
   private readonly router = inject(Router);
@@ -280,13 +283,22 @@ export default class OrdenDetallePage {
 
   protected async adjuntar(estudioId: string, archivos: File[]): Promise<void> {
     this.subiendo.set(estudioId);
-    await this.api.adjuntar(this.id(), estudioId, archivos);
-    this.subiendo.set(null);
-    this.toast.add({ severity: 'success', summary: 'Archivos adjuntados', detail: archivos.map((a) => a.name).join(', '), life: 3000 });
+    try {
+      await this.api.adjuntar(this.id(), estudioId, archivos);
+      this.toast.add({ severity: 'success', summary: 'Archivos adjuntados', detail: archivos.map((a) => a.name).join(', '), life: 3000 });
+    } catch (e) {
+      this.toast.add({ severity: 'error', summary: 'Error al subir archivo', detail: (e as Error).message });
+    } finally {
+      this.subiendo.set(null);
+    }
   }
 
   protected async quitar(estudioId: string, adjuntoId: string): Promise<void> {
-    await this.api.quitarAdjunto(this.id(), estudioId, adjuntoId);
+    try {
+      await this.api.quitarAdjunto(this.id(), estudioId, adjuntoId);
+    } catch (e) {
+      this.toast.add({ severity: 'error', summary: 'No se pudo quitar', detail: (e as Error).message });
+    }
   }
 
   protected async cerrar(): Promise<void> {
@@ -312,9 +324,14 @@ export default class OrdenDetallePage {
       rejectButtonProps: { severity: 'secondary', text: true },
       accept: async () => {
         this.procesando.set(true);
-        await this.api.reabrirOrden(this.id());
-        this.procesando.set(false);
-        this.toast.add({ severity: 'info', summary: 'Orden reabierta' });
+        try {
+          await this.api.reabrirOrden(this.id());
+          this.toast.add({ severity: 'info', summary: 'Orden reabierta' });
+        } catch (e) {
+          this.toast.add({ severity: 'error', summary: 'No se pudo reabrir', detail: (e as Error).message });
+        } finally {
+          this.procesando.set(false);
+        }
       },
     });
   }
@@ -331,17 +348,22 @@ export default class OrdenDetallePage {
       acceptButtonProps: { severity: 'danger' },
       rejectButtonProps: { severity: 'secondary', text: true },
       accept: async () => {
-        await this.api.eliminarOrden(o.id);
-        this.toast.add({ severity: 'success', summary: 'Orden eliminada', detail: folio(o.folio) });
-        void this.router.navigateByUrl('/lab/ordenes');
+        try {
+          await this.api.eliminarOrden(o.id);
+          this.toast.add({ severity: 'success', summary: 'Orden eliminada', detail: folio(o.folio) });
+          void this.router.navigateByUrl('/lab/ordenes');
+        } catch (e) {
+          this.toast.add({ severity: 'error', summary: 'No se pudo eliminar', detail: (e as Error).message });
+        }
       },
     });
   }
 
-  protected descargar(nombreArchivo: string, estudio: string): void {
-    const o = this.orden();
-    if (!o || !descargarResultado(o.estado, nombreArchivo, `${estudio} - ${folio(o.folio)}`)) {
-      this.toast.add({ severity: 'warn', summary: 'Aún no disponible', detail: 'La orden debe estar lista para descargar.' });
+  protected async descargar(estudioId: string, adjuntoId: string, nombreArchivo: string): Promise<void> {
+    try {
+      await this.api.descargarAdjuntoReal(this.id(), estudioId, adjuntoId, nombreArchivo);
+    } catch (e) {
+      this.toast.add({ severity: 'error', summary: 'Error al descargar', detail: (e as Error).message });
     }
   }
 }

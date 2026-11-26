@@ -31,13 +31,13 @@ export class OrdenesVistaService {
         const medico = o.medicoId ? medicos.get(o.medicoId) : undefined;
         const detalle = o.estudios
           .map((e) => {
-            const est = estudios.get(e.estudioId);
+            const est = e.estudio ?? estudios.get(e.estudioId);
             return est ? { ...est, adjuntos: e.adjuntos } : null;
           })
           .filter((x): x is NonNullable<typeof x> => x !== null);
         return {
           ...o,
-          paciente: pacientes.get(o.pacienteId),
+          paciente: o.paciente ?? pacientes.get(o.pacienteId),
           medico,
           medicoNombre: medico?.nombre ?? o.medicoExterno ?? 'Sin médico',
           sucursal: sucursales.get(o.sucursalId),

@@ -98,7 +98,8 @@ import { SearchField } from '@shared/ui/search-field';
             <div>
               <label class="field-label" for="m-pass">{{ editando() ? 'Nueva contraseña' : 'Contraseña' }}</label>
               <p-password class="ml-fluid" inputId="m-pass" formControlName="contrasena" [toggleMask]="true" inputStyleClass="w-full" autocomplete="new-password" appendTo="body" />
-              <p class="field-hint">{{ editando() ? 'Déjala vacía para conservar la actual.' : 'Mínimo 8 caracteres.' }}</p>
+              <p class="field-hint">{{ editando() ? 'Déjala vacía para conservar la actual.' : 'Mínimo 12 caracteres.' }}</p>
+              <ml-field-error [control]="form.controls.contrasena" [submitted]="enviado()" />
             </div>
           </div>
         </fieldset>
@@ -131,7 +132,7 @@ export default class MedicosPage {
     especialidad: ['', Validators.required],
     cedula: ['', [Validators.required, Validators.pattern(/^\d{7,8}$/)]],
     telefono: [''],
-    correo: ['', Validators.email],
+    correo: ['', [Validators.required, Validators.email]],
     usuario: ['', Validators.required],
     contrasena: [''],
   });
@@ -140,7 +141,7 @@ export default class MedicosPage {
     this.editando.set(m);
     this.enviado.set(false);
     this.form.reset({ ...(m ?? {}), contrasena: '' });
-    this.form.controls.contrasena.setValidators(m ? [] : [Validators.required, Validators.minLength(8)]);
+    this.form.controls.contrasena.setValidators(m ? [Validators.minLength(12)] : [Validators.required, Validators.minLength(12)]);
     this.form.controls.contrasena.updateValueAndValidity();
     this.dialogo.set(true);
   }
@@ -149,10 +150,15 @@ export default class MedicosPage {
     this.enviado.set(true);
     if (this.form.invalid) return;
     this.guardando.set(true);
-    const { contrasena: _, ...datos } = this.form.getRawValue();
-    const m = await this.api.guardarMedico({ ...datos, id: this.editando()?.id });
-    this.guardando.set(false);
-    this.dialogo.set(false);
-    this.toast.add({ severity: 'success', summary: 'Médico guardado', detail: m.nombre });
+    try {
+      const datos = this.form.getRawValue();
+      const m = await this.api.guardarMedico({ ...datos, id: this.editando()?.id });
+      this.dialogo.set(false);
+      this.toast.add({ severity: 'success', summary: 'Médico guardado', detail: m.nombre });
+    } catch (e) {
+      this.toast.add({ severity: 'error', summary: 'No se pudo guardar', detail: (e as Error).message });
+    } finally {
+      this.guardando.set(false);
+    }
   }
 }

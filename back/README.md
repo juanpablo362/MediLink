@@ -15,7 +15,7 @@ $env:Bootstrap__Password = Read-Host 'Contraseña inicial del administrador (12�
 dotnet run --project src/MediLink.Api
 ```
 
-API: `http://localhost:5080`. OpenAPI: `http://localhost:5080/openapi/v1.json` (solo Development). Comprobaciones: `/health/live` y `/health/ready`.
+API: `http://localhost:5080`. Swagger UI: `http://localhost:5080/swagger`. OpenAPI: `http://localhost:5080/openapi/v1.json`. Ambas rutas de documentación están disponibles en Development. Comprobaciones: `/health/live` y `/health/ready`.
 
 En el primer arranque se aplican las migraciones, se crea una institución vacía y una sucursal principal con el usuario `admin`. La contraseña se toma de la variable anterior: no hay una contraseña predeterminada. En arranques posteriores no se recrean cuentas ni se sobrescriben datos. Configura la institución desde la API.
 
@@ -26,6 +26,16 @@ $env:Jwt__SigningKey = [Convert]::ToBase64String([System.Security.Cryptography.R
 ```
 
 También puedes usar `dotnet user-secrets` o `src/MediLink.Api/appsettings.Local.json`, excluido de Git. Las variables de entorno tienen prioridad sobre ese archivo. El proyecto incluye [requests.http](requests.http) para probar el flujo.
+
+## Probar la API con Swagger UI
+
+1. Ejecuta la API con `dotnet run --project src/MediLink.Api` y abre `http://localhost:5080/swagger`.
+2. Abre `POST /api/v1/auth/login`, pulsa **Try it out** y escribe tu usuario y contraseña. Usa `tipo: "lab"` para administración/laboratorio o `tipo: "medico"` para el médico.
+3. Pulsa **Execute** y copia el valor `accessToken` de la respuesta.
+4. Pulsa **Authorize**, pega únicamente el token (sin escribir `Bearer`) y confirma. Swagger agregará el encabezado `Authorization: Bearer ...` a las operaciones protegidas.
+5. Prueba los endpoints con **Try it out** y **Execute**. Se aplican los roles y las sucursales de la cuenta autenticada. Al vencer el token, vuelve a iniciar sesión y reemplázalo en **Authorize**.
+
+El login, la salud y los resultados mediante enlace están documentados como públicos. Swagger UI utiliza la especificación OpenAPI generada por ASP.NET Core; la documentación no incluye credenciales reales.
 
 ## Contratos y permisos
 

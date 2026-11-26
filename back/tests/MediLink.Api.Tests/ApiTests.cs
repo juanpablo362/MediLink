@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using MediLink.Api.Contracts;
 using MediLink.Api.Data;
 using MediLink.Api.Security;
@@ -251,6 +253,65 @@ public sealed class ApiTests
         Assert.Contains("/api/v1/ordenes", json);
         Assert.Contains("/api/v1/auth/login", json);
         Assert.Contains("/api/v1/resultados/{token}", json);
+    }
+
+    [Fact]
+    public async Task Swagger_ui_and_its_assets_are_available_without_login_in_development()
+    {
+        using var app = new TestApi(development: true); using var client = app.CreateClient();
+        using var response = await client.GetAsync("/swagger");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/html", response.Content.Headers.ContentType!.MediaType);
+        Assert.Equal("/swagger/index.html", response.RequestMessage!.RequestUri!.AbsolutePath);
+        var html = await response.Content.ReadAsStringAsync();
+        Assert.Contains("MediLink · Swagger UI", WebUtility.HtmlDecode(html));
+        Assert.Contains("swagger-ui.css", html);
+        Assert.Contains("swagger-ui-bundle.js", html);
+        using var css = await client.GetAsync("/swagger/swagger-ui.css");
+        Assert.Equal(HttpStatusCode.OK, css.StatusCode);
+        Assert.Equal("text/css", css.Content.Headers.ContentType!.MediaType);
+        using var script = await client.GetAsync("/swagger/swagger-ui-bundle.js");
+        Assert.Equal(HttpStatusCode.OK, script.StatusCode);
+        var initialization = html;
+        var scripts = Regex.Matches(html, """<script[^>]+src=["'](?<src>[^"']+)["']""", RegexOptions.IgnoreCase);
+        foreach (Match match in scripts)
+        {
+            var source = match.Groups["src"].Value;
+            if (source.Contains("bundle", StringComparison.OrdinalIgnoreCase) || source.Contains("standalone-preset", StringComparison.OrdinalIgnoreCase)) continue;
+            initialization += await client.GetStringAsync(new Uri(response.RequestMessage.RequestUri, source));
+        }
+        Assert.Contains("../openapi/v1.json", initialization);
+    }
+
+    [Fact]
+    public async Task OpenApi_declares_bearer_authentication_only_for_protected_operations()
+    {
+        using var app = new TestApi(development: true); using var client = app.CreateClient();
+        using var document = JsonDocument.Parse(await client.GetStringAsync("/openapi/v1.json"));
+        var root = document.RootElement;
+        Assert.Equal("MediLink API", root.GetProperty("info").GetProperty("title").GetString());
+        var bearer = root.GetProperty("components").GetProperty("securitySchemes").GetProperty("Bearer");
+        Assert.Equal("http", bearer.GetProperty("type").GetString());
+        Assert.Equal("bearer", bearer.GetProperty("scheme").GetString());
+        Assert.Equal("JWT", bearer.GetProperty("bearerFormat").GetString());
+        foreach (var path in root.GetProperty("paths").EnumerateObject())
+        foreach (var method in path.Value.EnumerateObject().Where(x => x.Name is "get" or "post" or "put" or "delete" or "patch" or "head" or "options"))
+        {
+            var isPublic = path.Name is "/api/v1/auth/login" or "/health/live" or "/health/ready"
+                || path.Name.StartsWith("/api/v1/resultados", StringComparison.Ordinal);
+            var hasSecurity = method.Value.TryGetProperty("security", out var security) && security.GetArrayLength() > 0;
+            Assert.True(hasSecurity != isPublic, $"Unexpected security requirement for {method.Name} {path.Name}");
+            if (hasSecurity) Assert.True(security[0].TryGetProperty("Bearer", out _), $"Missing Bearer requirement for {method.Name} {path.Name}");
+        }
+    }
+
+    [Fact]
+    public async Task Swagger_and_OpenApi_are_unavailable_outside_development()
+    {
+        using var app = new TestApi(); using var admin = await app.Login();
+        Assert.Equal(HttpStatusCode.NotFound, (await admin.GetAsync("/swagger/index.html")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await admin.GetAsync("/swagger/swagger-ui-bundle.js")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await admin.GetAsync("/openapi/v1.json")).StatusCode);
     }
 
     private static async Task<string> AdminId(HttpClient c) => (await TestApi.Read<SesionDto>(await c.GetAsync("/api/v1/auth/me"), HttpStatusCode.OK)).Id;

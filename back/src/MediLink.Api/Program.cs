@@ -49,7 +49,11 @@ builder.Services.AddSingleton<ResultStorage>();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+    options.AddOperationTransformer<BearerSecurityOperationTransformer>();
+});
 builder.Services.Configure<FormOptions>(o => o.MultipartBodyLengthLimit = ResultStorage.MaxFileBytes + 1024 * 1024);
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = ResultStorage.MaxFileBytes + 1024 * 1024);
 
@@ -119,6 +123,19 @@ app.Use(async (context, next) =>
     await next();
 });
 app.UseCors();
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi().AllowAnonymous();
+    // Serve the UI before the fallback authorization policy so login and docs
+    // are reachable without already having an access token.
+    app.UseSwaggerUI(options =>
+    {
+        options.RoutePrefix = "swagger";
+        options.DocumentTitle = "MediLink · Swagger UI";
+        options.SwaggerEndpoint("../openapi/v1.json", "MediLink API v1");
+        options.DisplayRequestDuration();
+    });
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
@@ -133,7 +150,6 @@ app.MapGet("/health/ready", async (MediLinkDbContext db, CancellationToken ct) =
     }
     catch (System.Data.Common.DbException) { return Results.StatusCode(503); }
 }).AllowAnonymous();
-if (app.Environment.IsDevelopment()) app.MapOpenApi().AllowAnonymous();
 if (args.Contains("--migrate") || builder.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
     await DatabaseSetup.Initialize(app.Services, builder.Configuration);
 if (!args.Contains("--migrate")) await app.RunAsync();

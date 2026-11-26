@@ -105,8 +105,8 @@ import { SearchField } from '@shared/ui/search-field';
         </fieldset>
       </form>
       <ng-template #footer>
-        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="dialogo.set(false)" />
-        <p-button type="submit" form="form-medico" label="Guardar" [loading]="guardando()" />
+        <p-button type="button" label="Cancelar" severity="secondary" [text]="true" (onClick)="dialogo.set(false)" />
+        <p-button type="button" label="Guardar" [loading]="guardando()" (onClick)="guardar()" />
       </ng-template>
     </p-dialog>
   `,

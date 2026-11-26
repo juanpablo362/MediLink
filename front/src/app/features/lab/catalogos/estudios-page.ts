@@ -143,8 +143,8 @@ import { SearchField } from '@shared/ui/search-field';
         </div>
       </form>
       <ng-template #footer>
-        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="dialogo.set(false)" />
-        <p-button type="submit" form="form-estudio" label="Guardar" [loading]="guardando()" />
+        <p-button type="button" label="Cancelar" severity="secondary" [text]="true" (onClick)="dialogo.set(false)" />
+        <p-button type="button" label="Guardar" [loading]="guardando()" (onClick)="guardar()" />
       </ng-template>
     </p-dialog>
   `,
@@ -177,7 +177,11 @@ export default class EstudiosPage {
   protected abrir(e: Estudio | null): void {
     this.editando.set(e);
     this.enviado.set(false);
-    this.form.reset(e ? { ...e, indicaciones: e.indicaciones ?? '' } : undefined);
+    this.form.reset(
+      e
+        ? { ...e, indicaciones: e.indicaciones ?? '' }
+        : { nombre: '', clave: '', area: '', precio: 0, diasEntrega: 1, dicom: false, indicaciones: '' },
+    );
     this.dialogo.set(true);
   }
 
@@ -196,4 +200,4 @@ export default class EstudiosPage {
       this.guardando.set(false);
     }
   }
-} 
+}

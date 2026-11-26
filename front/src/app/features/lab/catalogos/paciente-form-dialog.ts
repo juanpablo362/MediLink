@@ -75,8 +75,8 @@ import { FieldError } from '@shared/ui/field-error';
         </div>
       </form>
       <ng-template #footer>
-        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="visible.set(false)" />
-        <p-button type="submit" form="form-paciente" [label]="paciente() ? 'Guardar cambios' : 'Registrar paciente'" [loading]="guardando()" />
+        <p-button type="button" label="Cancelar" severity="secondary" [text]="true" (onClick)="visible.set(false)" />
+        <p-button type="button" [label]="paciente() ? 'Guardar cambios' : 'Registrar paciente'" [loading]="guardando()" (onClick)="guardar()" />
       </ng-template>
     </p-dialog>
   `,

@@ -28,7 +28,7 @@ public sealed class MedicosController(MediLinkDbContext db, IPasswordHasher<Cuen
     public async Task<ActionResult<MedicoDto>> Get(string id, CancellationToken ct) =>
         (await db.Medicos.AsNoTracking().Include(x => x.Cuenta).SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw ApiException.NotFound()).ToDto();
 
-    [HttpPost, Authorize(Roles = "admin")]
+    [HttpPost]
     public async Task<ActionResult<MedicoDto>> Create(MedicoRequest request, CancellationToken ct)
     {
         var account = new Cuenta { Rol = "medico" };
@@ -38,7 +38,7 @@ public sealed class MedicosController(MediLinkDbContext db, IPasswordHasher<Cuen
         return CreatedAtAction(nameof(Get), new { id = item.Id }, item.ToDto());
     }
 
-    [HttpPut("{id}"), Authorize(Roles = "admin")]
+    [HttpPut("{id}")]
     public async Task<ActionResult<MedicoDto>> Update(string id, MedicoRequest request, CancellationToken ct)
     {
         var item = await db.Medicos.Include(x => x.Cuenta).SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw ApiException.NotFound();
@@ -47,5 +47,9 @@ public sealed class MedicosController(MediLinkDbContext db, IPasswordHasher<Cuen
     }
 
     private static void Apply(Medico item, MedicoRequest r)
-    { item.Especialidad = r.Especialidad.Trim(); item.Cedula = r.Cedula; item.Telefono = r.Telefono.Trim(); }
+    { 
+        item.Especialidad = r.Especialidad.Trim(); 
+        item.Cedula = r.Cedula; 
+        item.Telefono = r.Telefono.Trim(); 
+    }
 }
